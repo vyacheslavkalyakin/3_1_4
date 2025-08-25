@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Panel</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Ваш CSS (без изменений) */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+        }
+        .header {
+            background-color: #343a40;
+            color: white;
+            padding: 10px 20px;
+            font-size: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .layout {
+            display: flex;
+            min-height: calc(100vh - 60px);
+        }
+        .sidebar {
+            width: 250px;
+            background-color: #fff;
+            border-right: 1px solid #dee2e6;
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar .role-box,
+        .sidebar .secondary-role {
+            padding: 10px 15px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            text-align: left;
+        }
+        .sidebar .role-box.active,
+        .sidebar .secondary-role.active {
+            background-color: #0d6efd;
+            color: white;
+        }
+        .sidebar .secondary-role {
+            background-color: #f8f9fa;
+            border-top: 1px solid #dee2e6;
+            color: #0d6efd;
+        }
+        .main-content {
+            flex-grow: 1;
+            padding: 20px 0;
+        }
+        .content-header {
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            padding-left: 40px;
+        }
+        .table-container {
+            background-color: white;
+            border: 1px solid #dee2e6;
+            border-radius: 0 0 5px 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            padding: 0 40px 20px 40px;
+            margin: 0 40px;
+        }
+        .all-users-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            font-weight: bold;
+            font-size: 1.2rem;
+            height: 40px;
+            line-height: 24px;
+            padding-left: 0;
+            text-align: left;
+        }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 0.5rem; border-bottom: 1px solid #dee2e6; text-align: left; vertical-align: middle; }
+        th { font-weight: 600; background-color: #f8f9fa; }
+        td { font-weight: 400; }
+        .actions-header { width: 120px; text-align: center; }
+        .actions-cell { text-align: center; font-weight: 600; }
+        .btn-warning { background-color: #00CED1; border-color: #00CED1; color: white; }
+        .btn-warning:hover { background-color: #00b9bb; border-color: #00b9bb; color: white; }
+        .btn-danger { background-color: #dc3545; border-color: #dc3545; color: white; }
+        .logout-link { color: white; text-decoration: none; background: none; border: none; cursor: pointer; }
+        .logout-link:hover { color: #ccc; text-decoration: underline; }
+    </style>
+</head>
+<body>
+<div class="header">
+    <div>
+        <span id="userEmail">admin@mail.ru</span> with roles:
+        <span id="userRoles">ADMIN USER</span>
+    </div>
+    <div>
+        <button id="logoutButton" class="logout-link">Logout</button>
+    </div>
+</div>
+
+<div class="layout">
+    <div class="sidebar nav flex-column nav-pills" id="roleTabs" role="tablist">
+        <button class="role-box nav-link active" id="tab-admin" data-bs-toggle="pill" data-bs-target="#admin-panel" type="button">Admin</button>
+        <button class="secondary-role nav-link" id="tab-user" data-bs-toggle="pill" data-bs-target="#user-panel" type="button">User</button>
+    </div>
+
+    <div class="main-content tab-content">
+        <!-- Admin Panel -->
+        <div class="tab-pane fade show active" id="admin-panel" role="tabpanel">
+            <div class="content-header">Admin panel</div>
+
+            <ul class="nav nav-tabs ms-4" id="adminTabs" role="tablist">
+                <li class="nav-item">
+                    <button class="nav-link active" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button">Users Table</button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" id="new-user-tab" data-bs-toggle="tab" data-bs-target="#new-user" type="button">New User</button>
+                </li>
+            </ul>
+
+            <div class="tab-content mt-3" id="adminTabsContent">
+                <!-- Users Table -->
+                <div class="tab-pane fade show active" id="users" role="tabpanel">
+                    <div class="table-container">
+                        <div class="all-users-header">All users</div>
+                        <table class="table table-striped" id="usersTable">
+                            <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>First Name</th>
+                                <th>Last Name</th>
+                                <th>Age</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th class="actions-header">Edit</th>
+                                <th class="actions-header">Delete</th>
+                            </tr>
+                            </thead>
+                            <tbody id="usersTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- New User Form -->
+                <div class="tab-pane fade" id="new-user" role="tabpanel">
+                    <div class="d-flex justify-content-center">
+                        <div class="modal-dialog modal-dialog-centered" style="max-width:600px; width:100%;">
+                            <div class="modal-content">
+                                <form id="newUserForm">
+                                    <div class="modal-header"><h5 class="modal-title">Add new user</h5></div>
+                                    <div class="modal-body">
+                                        <div class="mb-3">
+                                            <label for="firstName" class="form-label">First Name</label>
+                                            <input type="text" id="firstName" class="form-control" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="lastName" class="form-label">Last Name</label>
+                                            <input type="text" id="lastName" class="form-control" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="age" class="form-label">Age</label>
+                                            <input type="number" id="age" class="form-control" required min="0">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="email" class="form-label">Email</label>
+                                            <input type="email" id="email" class="form-control" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="password" class="form-label">Password</label>
+                                            <input type="password" id="password" class="form-control" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="roles" class="form-label">Roles</label>
+                                            <select multiple id="roles" class="form-select" size="2" required>
+                                                <option value="1">ADMIN</option>
+                                                <option value="2">USER</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="submit" class="btn btn-success">Add User</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Panel -->
+        <div class="tab-pane fade" id="user-panel" role="tabpanel">
+            <div class="content-header">Profile info</div>
+            <div class="table-container">
+                <table class="table table-striped" id="profileTable">
+                    <thead>
+                    <tr>
+                        <th>ID</th><th>First Name</th><th>Last Name</th><th>Age</th><th>Email</th><th>Role</th>
+                    </tr>
+                    </thead>
+                    <tbody id="profileTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form id="editUserForm">
+                <div class="modal-header"><h5 class="modal-title">Edit user</h5></div>
+                <div class="modal-body">
+                    <input type="hidden" id="editId">
+                    <div class="mb-2"><label class="form-label">First Name</label><input type="text" id="editFirstName" class="form-control" required></div>
+                    <div class="mb-2"><label class="form-label">Last Name</label><input type="text" id="editLastName" class="form-control" required></div>
+                    <div class="mb-2"><label class="form-label">Age</label><input type="number" id="editAge" class="form-control" required></div>
+                    <div class="mb-2"><label class="form-label">Email</label><input type="email" id="editEmail" class="form-control" required></div>
+                    <div class="mb-2"><label class="form-label">Password</label><input type="password" id="editPassword" class="form-control"></div>
+                    <div class="mb-2">
+                        <label class="form-label">Roles</label>
+                        <select multiple id="editRoles" class="form-select" size="2">
+                            <option value="1">ADMIN</option>
+                            <option value="2">USER</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-warning">Edit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form id="deleteUserForm">
+                <div class="modal-header"><h5 class="modal-title">Delete user</h5></div>
+                <div class="modal-body">
+                    <input type="hidden" id="deleteId">
+                    <p class="text-center fw-bold">Are you sure?</p>
+                    <div class="mb-2"><label class="form-label">First Name</label><input type="text" id="deleteFirstName" class="form-control" readonly></div>
+                    <div class="mb-2"><label class="form-label">Last Name</label><input type="text" id="deleteLastName" class="form-control" readonly></div>
+                    <div class="mb-2"><label class="form-label">Age</label><input type="text" id="deleteAge" class="form-control" readonly></div>
+                    <div class="mb-2"><label class="form-label">Email</label><input type="email" id="deleteEmail" class="form-control" readonly></div>
+                    <div class="mb-2">
+                        <label class="form-label">Roles</label>
+                        <select multiple id="deleteRoles" class="form-select" size="2" disabled>
+                            <option value="1">ADMIN</option>
+                            <option value="2">USER</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    let currentUserId = null;
+
+    function loadUsers() {
+        fetch('/api/admin/users')
+            .then(res => {
+                if (!res.ok) throw new Error('Failed to load users');
+                return res.json();
+            })
+            .then(users => {
+                const tbody = document.querySelector('#usersTableBody');
+                tbody.innerHTML = '';
+                users.forEach(user => {
+                    const roles = user.roles.map(r => r.name.replace('ROLE_', '')).join(', ');
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                    <td>${user.id}</td>
+                    <td>${user.firstName}</td>
+                    <td>${user.lastName}</td>
+                    <td>${user.age}</td>
+                    <td>${user.email}</td>
+                    <td>${roles}</td>
+                    <td class="actions-cell">
+                        <button class="btn btn-sm btn-warning" onclick="openEditModal(${user.id})">Edit</button>
+                    </td>
+                    <td class="actions-cell">
+                        <button class="btn btn-sm btn-danger" onclick="openDeleteModal(${user.id})">Delete</button>
+                    </td>
+                `;
+                    tbody.appendChild(row);
+                });
+            })
+            .catch(error => console.error('Error loading users:', error));
+    }
+
+    function loadProfile() {
+        fetch('/api/admin/profile')
+            .then(res => {
+                if (!res.ok) throw new Error('Failed to load profile');
+                return res.json();
+            })
+            .then(user => {
+                const tbody = document.querySelector('#profileTableBody');
+                const roles = user.roles.map(r => r.name.replace('ROLE_', '')).join(', ');
+                tbody.innerHTML = `
+                <tr>
+                    <td>${user.id}</td>
+                    <td>${user.firstName}</td>
+                    <td>${user.lastName}</td>
+                    <td>${user.age}</td>
+                    <td>${user.email}</td>
+                    <td>${roles}</td>
+                </tr>
+            `;
+            })
+            .catch(error => console.error('Error loading profile:', error));
+    }
+
+    function openEditModal(userId) {
+        currentUserId = userId;
+        fetch(`/api/admin/users/${userId}`)
+            .then(res => res.json())
+            .then(user => {
+                document.getElementById('editId').value = user.id;
+                document.getElementById('editFirstName').value = user.firstName;
+                document.getElementById('editLastName').value = user.lastName;
+                document.getElementById('editAge').value = user.age;
+                document.getElementById('editEmail').value = user.email;
+                document.getElementById('editPassword').value = '';
+
+                const rolesSelect = document.getElementById('editRoles');
+                Array.from(rolesSelect.options).forEach(opt => {
+                    opt.selected = user.roles.some(r => r.name === 'ROLE_' + opt.text);
+                });
+
+                new bootstrap.Modal(document.getElementById('editModal')).show();
+            })
+            .catch(error => console.error('Error loading user for edit:', error));
+    }
+
+    function openDeleteModal(userId) {
+        currentUserId = userId;
+        fetch(`/api/admin/users/${userId}`)
+            .then(res => res.json())
+            .then(user => {
+                document.getElementById('deleteId').value = user.id;
+                document.getElementById('deleteFirstName').value = user.firstName;
+                document.getElementById('deleteLastName').value = user.lastName;
+                document.getElementById('deleteAge').value = user.age;
+                document.getElementById('deleteEmail').value = user.email;
+
+                const rolesSelect = document.getElementById('deleteRoles');
+                Array.from(rolesSelect.options).forEach(opt => {
+                    opt.selected = user.roles.some(r => r.name === 'ROLE_' + opt.text);
+                });
+
+                new bootstrap.Modal(document.getElementById('deleteModal')).show();
+            })
+            .catch(error => console.error('Error loading user for delete:', error));
+    }
+
+    document.getElementById('newUserForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const user = {
+            firstName: document.getElementById('firstName').value,
+            lastName: document.getElementById('lastName').value,
+            age: parseInt(document.getElementById('age').value),
+            email: document.getElementById('email').value,
+            password: document.getElementById('password').value,
+            roles: Array.from(document.getElementById('roles').selectedOptions)
+                .map(opt => ({ id: parseInt(opt.value), name: 'ROLE_' + opt.text }))
+        };
+
+        fetch('/api/admin/users', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(user)
+        })
+            .then(res => {
+                if (res.ok) {
+                    loadUsers();
+                    this.reset();
+                    // Переключаемся на Users таблицу
+                    const usersTab = document.querySelector('#users-tab');
+                    bootstrap.Tab.getInstance(usersTab).show();
+                } else throw new Error('Failed to create user');
+            })
+            .catch(error => console.error('Error creating user:', error));
+    });
+
+    document.getElementById('editUserForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const user = {
+            id: currentUserId,
+            firstName: document.getElementById('editFirstName').value,
+            lastName: document.getElementById('editLastName').value,
+            age: parseInt(document.getElementById('editAge').value),
+            email: document.getElementById('editEmail').value,
+            password: document.getElementById('editPassword').value || undefined,
+            roles: Array.from(document.getElementById('editRoles').selectedOptions)
+                .map(opt => ({ id: parseInt(opt.value), name: 'ROLE_' + opt.text }))
+        };
+
+        fetch(`/api/admin/users/${currentUserId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(user)
+        })
+            .then(res => {
+                if (res.ok) {
+                    loadUsers();
+                    bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
+                } else throw new Error('Failed to update user');
+            })
+            .catch(error => console.error('Error updating user:', error));
+    });
+
+    document.getElementById('deleteUserForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        fetch(`/api/admin/users/${currentUserId}`, { method: 'DELETE' })
+            .then(res => {
+                if (res.ok) {
+                    loadUsers();
+                    bootstrap.Modal.getInstance(document.getElementById('deleteModal')).hide();
+                } else throw new Error('Failed to delete user');
+            })
+            .catch(error => console.error('Error deleting user:', error));
+    });
+
+    document.getElementById('logoutButton').addEventListener('click', () => {
+        fetch('/logout', { method: 'POST' })
+            .then(res => { if(res.ok) window.location.href = '/login'; })
+            .catch(error => console.error('Error during logout:', error));
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadUsers();
+
+        const roleTabs = document.querySelectorAll('#roleTabs button');
+        roleTabs.forEach(tab => {
+            tab.addEventListener('shown.bs.tab', event => {
+                if(event.target.id === 'tab-user') loadProfile();
+            });
+        });
+
+        if(document.querySelector('#tab-user').classList.contains('active')) {
+            loadProfile();
+        }
+    });
+
+</script>
+</body>
+</html>
