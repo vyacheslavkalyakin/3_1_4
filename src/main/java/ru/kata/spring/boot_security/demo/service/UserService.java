@@ -19,5 +19,9 @@ public interface UserService {
 
     void editUser(int id, String password, String email, String firstName, String lastName, int age);
 
-    public List<Role> getAllRoles();
+    List<Role> getAllRoles();
+
+    void createUserWithRoles(User user);
+
+    User updateUserWithRoles(int id, User updatedUser);
 }

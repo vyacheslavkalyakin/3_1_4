@@ -13,12 +13,10 @@ import java.util.Optional;
 public interface RoleRepository extends JpaRepository<Role, Integer> {
 
     @Modifying
-    @Transactional
     @Query(value = "ALTER TABLE roles AUTO_INCREMENT = 1", nativeQuery = true)
     void resetAutoIncrement();
 
     @Modifying
-    @Transactional
     @Query(value = "DELETE FROM roles", nativeQuery = true)
     void deleteAllRoles();
 

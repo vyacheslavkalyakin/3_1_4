@@ -19,6 +19,4 @@ public interface RoleService {
 
     void deleteRole(int id);
 
-    @Transactional
-    void resetAutoIncrement();
 }
