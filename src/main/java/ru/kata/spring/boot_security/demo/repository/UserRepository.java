@@ -9,13 +9,8 @@ import java.util.Optional;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Integer> {
-    @Transactional
-    @Modifying
-    @Query(value = "ALTER TABLE users AUTO_INCREMENT = 1", nativeQuery = true)
-    void resetAutoIncrement();
 
     @Modifying
-    @Transactional
     @Query(value = "DELETE FROM users", nativeQuery = true)
     void deleteAllUsers();
 

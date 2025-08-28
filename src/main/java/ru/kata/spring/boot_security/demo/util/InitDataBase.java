@@ -27,26 +27,29 @@ public class InitDataBase implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) {
-        userRepository.deleteAll();
-        roleRepository.deleteAll();
-
-        userRepository.resetAutoIncrement();
-        roleRepository.resetAutoIncrement();
+        if (roleRepository.findByName("ROLE_ADMIN").isPresent()
+                && roleRepository.findByName("ROLE_USER").isPresent()) {
+            return;
+        }
 
         Role roleAdmin = new Role("ROLE_ADMIN");
         Role roleUser = new Role("ROLE_USER");
         roleRepository.save(roleAdmin);
         roleRepository.save(roleUser);
 
-        User admin = new User("Admin", "Adminov", "admin@example.com",
-                passwordEncoder.encode("admin"), 30);
-        admin.getRoles().add(roleAdmin);
-        admin.getRoles().add(roleUser);
-        userRepository.save(admin);
+        if (userRepository.findByEmail("admin@example.com").isEmpty()) {
+            User admin = new User("Admin", "Adminov", "admin@example.com",
+                    passwordEncoder.encode("admin"), 30);
+            admin.getRoles().add(roleAdmin);
+            admin.getRoles().add(roleUser);
+            userRepository.save(admin);
+        }
 
-        User user = new User("User", "Userov", "user@example.com",
-                passwordEncoder.encode("user"), 25);
-        user.getRoles().add(roleUser);
-        userRepository.save(user);
+        if (userRepository.findByEmail("user@example.com").isEmpty()) {
+            User user = new User("User", "Userov", "user@example.com",
+                    passwordEncoder.encode("user"), 25);
+            user.getRoles().add(roleUser);
+            userRepository.save(user);
+        }
     }
 }
